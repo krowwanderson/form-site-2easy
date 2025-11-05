@@ -15,7 +15,6 @@ import { Separator } from "@/components/ui/separator";
 import InputField from "./InputField";
 import FormHeader from "./FormHeader";
 import logo from "@/assets/final.png";
-import { trackLead } from "@/utils/facebookPixel";
 
 
 interface FormData {
@@ -323,18 +322,12 @@ const BasicForm: React.FC<BasicFormProps> = ({
         referral_code: "qoZ6fJaARbzDf2x",
         consent_to_messages: true,
         pesquisa: formData.survey, // Novo campo
+        tag_tracker: "site-2easy", // Campo fixo adicionado
         ...(vendorCode ? { campaign_id: vendorCode } : {}),
       };
       
       axios.post(webhookUrl, webhookPayload).catch((error) => {
         console.warn("Webhook failed (non-critical):", error);
-      });
-      
-      trackLead({
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
-        zipcode: formData.zip,
       });
       
       setSuccessMessage(t("form.messages.success"));
