@@ -11,6 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import InputField from "./InputField";
 import FormHeader from "./FormHeader";
@@ -47,12 +54,46 @@ const formatUsCaPhone = (digits: string): string => {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 };
 
+// Adicionar funções de formatação para Brasil e México
+const formatBrazilPhone = (digits: string): string => {
+  if (digits.length === 0) return "";
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6, 10)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+};
+
+const formatMexicoPhone = (digits: string): string => {
+  if (digits.length === 0) return "";
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6, 10)}`;
+};
+
 const PHONE_CONFIG: Record<string, PhoneConfig> = {
   "+1": {
     minDigits: 10,
     maxDigits: 10,
     format: formatUsCaPhone,
     placeholder: "(123) 456-7890",
+  },
+  "+52": {
+    minDigits: 10,
+    maxDigits: 10,
+    format: formatMexicoPhone,
+    placeholder: "(55) 1234-5678",
+  },
+  "+55": {
+    minDigits: 10,
+    maxDigits: 11,
+    format: formatBrazilPhone,
+    placeholder: "(11) 91234-5678",
   },
 };
 
@@ -191,6 +232,22 @@ const BasicForm: React.FC<BasicFormProps> = ({
     }
 
     setFormData((prev) => ({ ...prev, [field]: nextValue }));
+  };
+
+  // Adicionar handler para mudança de phoneCode
+  const handlePhoneCodeChange = (newCode: string) => {
+    // Limpar o telefone quando mudar o código do país
+    setFormData((prev) => ({
+      ...prev,
+      phoneCode: newCode,
+      phone: "",
+    }));
+    // Limpar erros de telefone
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.phone;
+      return next;
+    });
   };
 
   const resetMessages = () => {
@@ -404,9 +461,19 @@ const BasicForm: React.FC<BasicFormProps> = ({
               {conversationalMessages[2]}
             </p>
             <div className="flex gap-2">
-              <div className="flex items-center justify-center px-4 py-2 border border-input bg-muted rounded-md text-muted-foreground font-medium">
-                +1
-              </div>
+              <Select
+                value={formData.phoneCode}
+                onValueChange={handlePhoneCodeChange}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="+1" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="+1">+1 (US)</SelectItem>
+                  <SelectItem value="+52">+52 (MX)</SelectItem>
+                  <SelectItem value="+55">+55 (BR)</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="flex-1">
                 <InputField
                   id="phone"
